@@ -1,0 +1,114 @@
+#on:
+#  pull_request:
+#    branches:
+#      - main
+#      - master
+#  push:
+#    branches:
+#      - main
+#      - master
+#      - develop
+#name: "Build & Release"
+#jobs:
+#  build:
+#    name: Build & Release
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-java@v3
+#        with:
+#          distribution: 'zulu'
+#          java-version: '12'
+#      - uses: subosito/flutter-action@v2
+#        with:
+#          channel: 'stable'
+#          architecture: x64
+#
+#      - run: flutter build apk --release --split-per-abi
+#      - run: |
+#          flutter build ios --no-codesign
+#          cd build/ios/iphoneos
+#          mkdir Payload
+#          cd Payload
+#          ln -s ../Runner.app
+#          cd ..
+#          zip -r app.ipa Payload
+#      - name: Push to Releases
+#        uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
+#          tag: v1.0.${{ github.run_number }}
+#          token: ${{ secrets.TOKEN }}
+#
+#
+#
+#
+#
+#
+## push to master, main, develop
+## pull request on main master
+
+
+#################____________start here_________##############
+# Workflow name (visible in GitHub Actions tab)
+name: Flutter Web CI/CD
+
+# When this workflow will run
+on:
+  # Run when code is pushed
+  push:
+    branches:
+      - main        # run on main branch
+      - master      # run on master branch
+      - develop     # run on develop branch
+
+  # Run when pull request is created
+  pull_request:
+    branches:
+      - main
+      - master
+
+# Jobs section (you can have multiple jobs)
+jobs:
+  build:
+    # Job name
+    name: Build Flutter Web
+
+    # OS where the job will run
+    runs-on: windows-latest
+
+    # Steps are executed sequentially
+    steps:
+      # Step 1: Checkout repository code
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Flutter SDK
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable     # use stable Flutter channel
+          architecture: x64   # 64-bit architecture
+
+      # Step 3: Download project dependencies
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # Step 4: Build Flutter Web in release mode
+      - name: Build Flutter Web
+        run: flutter build web --release
+
+      # Step 5: Zip the web build folder
+      - name: Zip Web Build
+        run: |
+          powershell Compress-Archive build/web web-build.zip
+
+      # Step 6: Create GitHub Release and upload ZIP
+      - name: Push to GitHub Releases
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "web-build.zip"              # file to upload
+          tag: v1.0.${{ github.run_number }}      # auto version tag
+          token: ${{ secrets.GITHUB_TOKEN }}      # built-in GitHub token
+
+
