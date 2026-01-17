@@ -53,6 +53,8 @@
 # Workflow name (visible in GitHub Actions tab)
 name: Flutter Web CI/CD
 
+permissions:
+  contents: write   # ✅ REQUIRED for GitHub Releases
 # When this workflow will run
 on:
   # Run when code is pushed
@@ -109,6 +111,6 @@ jobs:
         with:
           artifacts: "web-build.zip"              # file to upload
           tag: v1.0.${{ github.run_number }}      # auto version tag
-          token: ${{ secrets.GITHUB_TOKEN }}      # built-in GitHub token
+          token: ${{ secrets.TOKEN }}      # built-in GitHub token
 
 
